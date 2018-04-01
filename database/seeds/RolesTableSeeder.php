@@ -13,7 +13,7 @@ class RolesTableSeeder extends Seeder
      */
     public function run()
     {
-        //add role
+        // define role
         $roles = [
         	[
         		'name' => 'admin',
@@ -28,28 +28,47 @@ class RolesTableSeeder extends Seeder
         ];
 
         foreach ($roles as $key => $value) {
+			// check role in database
+			$check = Role::where('name', $value['name'])->first();
+			if (!is_null($check)) {
+				// skip
+				continue;
+			}
+			// save to database
         	Role::create($value);
         }
 
-        //add user
-
+		// define users
         $users = [
         	[
         		'name' => 'admin1',
         		'email' => 'admin1@local.local',
-        		'password' => bcrypt('admin1'),
+				'password' => bcrypt('admin1'),
+				'role' => 'admin',
         	],
         	[
         		'name' => 'user1',
         		'email' => 'user1@local.local',
-        		'password' => bcrypt('user1'),
+				'password' => bcrypt('user1'),
+				'role' => 'user'
         	],
         ];
-        $n=1;
-        foreach ($users as $key => $value) {
-        	$user=User::create($value);
-        	$user->attachRole($n);
-        	$n++;
-        }
+        
+		// Save user to database
+		foreach ($users as $array) {
+			// check user
+			$check = User::where('email', $array['email'])->first();
+			if (is_null($check)) {
+				continue;
+			}
+			$role = $array['role']; unset($array['role']);
+			$user = User::create($array);
+			
+			// check role in database
+			$check = Role::where('name', $role)->first();
+			if (!is_null($check)) {
+				$user->attachRole($check);
+			}
+		}
     }
 }
